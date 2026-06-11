@@ -1,0 +1,53 @@
+cabal-version:      2.4
+name:               subjective-modeling
+version:            0.1.0.0
+synopsis:           Categorical core for Pytyev's subjective modeling and possibility theory
+description:
+  Quantales, Kan extensions along profunctors, Scott bitopology and interval
+  bilattice, semiring-parametrised distribution monad and the Pytyev layer:
+  plausibility/belief measures, residuation conditioning, entropies, expert
+  combination. Possibility theory, discrete probability and classical logic
+  are specialisations of one core.
+license:            MIT
+license-file:       LICENSE
+author:             darklordshish
+maintainer:         darkshish@gmail.com
+category:           Math
+build-type:         Simple
+extra-doc-files:    README.md
+
+common warnings
+  ghc-options: -Wall -Wno-name-shadowing
+  default-language: Haskell2010
+
+library
+  import:           warnings
+  hs-source-dirs:   src
+  exposed-modules:
+      Quantale
+      KanExtension
+      Bitopos
+      Distribution
+      SubjectiveModel
+  build-depends:
+      base       >=4.13 && <5
+    , containers >=0.6  && <0.9
+
+executable possibility-example
+  import:           warnings
+  hs-source-dirs:   examples
+  main-is:          PossibilityExample.hs
+  build-depends:    base, containers, subjective-modeling
+
+executable subjective-modeling-example
+  import:           warnings
+  hs-source-dirs:   examples
+  main-is:          SubjectiveModelingExample.hs
+  build-depends:    base, containers, subjective-modeling
+
+test-suite spec
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    base, containers, subjective-modeling
