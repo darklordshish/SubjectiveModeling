@@ -56,13 +56,25 @@ smPl m e = unUI (plMeasure (smDomain m) (ui . smTau m) e)
 smBel :: Eq a => SubjModel a -> [a] -> Double
 smBel m e = unUI (belMeasure (smDomain m) (ui . smTauBar m) e)
 
--- | Образ НОЭ под phi: X -> Y (прямой образ распределений).
+-- | Образ НОЭ под phi : X -> Y — функториальный пушфорвард:
+--   tau'    = Lan_phi tau    (sup по слою),
+--   tauBar' = Ran_phi tauBar (inf по слою; ко-синглетонное распределение).
+--   Тогда Pl_Y = Pl_X . preimage и Bel_Y = Bel_X . preimage (естественность
+--   формул образов; доказательство и контрпример к «событийному» прочтению
+--   п. 1.4 — ноутбук PytevIso.ipynb курса, теорема 2 / проверка C7).
 imageModel :: Eq b => SubjModel a -> (a -> b) -> [b] -> SubjModel b
 imageModel m phi ys = SubjModel ys tau' tauBar'
   where
     xs = smDomain m
     tau'    y = maximum (0 : [smTau m x    | x <- xs, phi x == y])
-    tauBar' y = minimum (1 : [smTauBar m x | x <- xs, phi x /= y])
+    tauBar' y = minimum (1 : [smTauBar m x | x <- xs, phi x == y])
+
+-- | «Событийное» прочтение п. 1.4 Пытьева: Bel(y~ = y) = Bel_X(phi^{-1}{y}) =
+--   inf_{phi(x) /= y} tauBar(x). Это доверие к СОБЫТИЮ «y~ = y», а не компонент
+--   распределения: подстановка его в inf_{y notin A} не восстанавливает Bel_Y
+--   уже при phi = id (Bel определяется на ко-синглетонах, а не на синглетонах).
+eventBelAt :: Eq b => SubjModel a -> (a -> b) -> b -> Double
+eventBelAt m phi y = minimum (1 : [smTauBar m x | x <- smDomain m, phi x /= y])
 
 -- | Действие автоморфизма gamma из Gamma на модель.
 applyGamma :: (Double -> Double) -> SubjModel a -> SubjModel a

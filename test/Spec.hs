@@ -111,6 +111,17 @@ main = do
     , check "[Bool] Pl degenerates to exists, Bel to forall"
         (plMeasure [1, 2, 3 :: Int] (> 1) [2, 3]
          && not (belMeasure [1, 2, 3 :: Int] (> 1) [2, 3]))
+    , check "imageModel is functorial: Pl/Bel transform by preimage (incl. phi = id)"
+        (let m = SubjModel dom tauD tauBarD
+             phi c = if c `elem` "ab" then 'u' else 'v'
+             mY  = imageModel m phi "uv"
+             mId = imageModel m id dom
+             pre a = [ x | x <- dom, phi x `elem` a ]
+             subsY = filterM (const [True, False]) "uv"
+         in all (\a -> ui (smPl mY a) =~ ui (smPl m (pre a))
+                    && ui (smBel mY a) =~ ui (smBel m (pre a))) subsY
+            && all (\e -> ui (smBel mId e) =~ ui (smBel m e)
+                       && ui (smPl mId e) =~ ui (smPl m e)) subsets)
       -- Yoneda / Isbell
     , check "hom is tensor-transitive"
         (isTransitive homE pts)
