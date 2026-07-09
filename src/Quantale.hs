@@ -5,6 +5,11 @@ Module      : Quantale
 Полиморфный слой: Lattice / Quantale с инстансами UnitInterval и Bool.
 Слой, специфичный для [0,1] (theta, Gamma), — внизу модуля.
 
+Ссылки: квантали и residuation — Rosenthal, "Quantales and their Applications"
+(1990); Goguen "L-fuzzy sets" (1967, шкала (max,*)); MV/Лукасевич — Chang (1958),
+Cignoli-D'Ottaviano-Mundici (2000); theta/Gamma — Пытьев (принцип относительности
+шкал). Полный разбор вариантов = квантальный спектр — PytevIso.ipynb, раздел 9.
+
 -- ИДЕИ РАСШИРЕНИЯ:
 --  * [СДЕЛАНО] Квантале Лукасевича (Luka), Гогена (Goguen), тропическое (Trop);
 --    инволюция как параметр (class InvolutiveQuantale). См. PytevIso.ipynb §9.

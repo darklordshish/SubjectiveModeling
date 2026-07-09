@@ -7,6 +7,11 @@ Module      : KanExtension
 Полностью полиморфен по Quantale q: над UnitInterval это теория Пытьева,
 над Bool — классическая логика предикатов (Pl = exists, Bel = forall).
 
+Ссылки: расширения Кана — Mac Lane, CWM, гл. X; Riehl, "Category Theory in
+Context", гл. 6; ends/coends — Loregian, "(Co)end Calculus". Обогащённые категории
+и Йонеда — Kelly; Lawvere (1973). Двойственность Исбелла O -| Spec — Isbell (1966).
+Профункторная формулировка Pl/Bel (наша) — PytevIso.ipynb, разделы 1-2.
+
 -- ИДЕИ РАСШИРЕНИЯ:
 --  * Носители-домены вместо списков: class Finite a / непрерывные X с sup по компактам.
 --  * Прообразные/образные профункторы общего вида и композиция профункторов
