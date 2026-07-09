@@ -5,11 +5,9 @@ Module      : SubjectiveModel
               полиморфному ядру через UnitInterval.
 
 -- ИДЕИ РАСШИРЕНИЯ:
---  * SubjModel над произвольным InvolutiveQuantale вместо [0,1] (theta как параметр).
---  * Второй вариант мер Пытьева: подгруппа Gamma_S с неподвижными точками как
---    отдельный тип Scale = [(Double, Double)] (интервалы) + проекторы.
---  * Третий вариант (психофизический): qTensor = (*) — отдельный newtype Psycho
---    с инстансом Quantale и переносом всех формул бесплатно.
+--  * [СДЕЛАНО] SubjModelQ над произвольной кванталью (полиморфный слой ниже);
+--    второй вариант (зарубки Scale + проекторы projUp/projDown/clampScale);
+--    третий вариант (Goguen) и Лукасевич — через Quantale.hs. См. PytevIso §9.
 --  * Условные распределения как настоящее Kleisli-стрелы монады возможности.
 --  * Эмпирическое восстановление (п. 2.1.2): тип Observation y + g^eta как Prof.
 -}
@@ -79,6 +77,71 @@ eventBelAt m phi y = minimum (1 : [smTauBar m x | x <- smDomain m, phi x /= y])
 -- | Действие автоморфизма gamma из Gamma на модель.
 applyGamma :: (Double -> Double) -> SubjModel a -> SubjModel a
 applyGamma g m = m { smTau = g . smTau m }
+
+-- ============================================================
+-- Полиморфный слой: субъективная модель над произвольной кванталью
+--   (варианты теории = смена шкалы; см. PytevIso.ipynb, раздел 9).
+--   Параллелен Double-фасаду выше: старый API не ломается.
+-- ============================================================
+
+-- | Субъективная модель со шкалой значений в квантали q.
+data SubjModelQ q a = SubjModelQ
+  { smqDomain :: [a]
+  , smqTau    :: a -> q   -- Pl-плотность
+  , smqTauBar :: a -> q   -- Bel-плотность (ко-синглетонная)
+  }
+
+-- | Дуально согласованная модель: tauBar = inv . tau. Требует инволютивной
+--   квантали — для Гогена (max,*) НЕ компилируется (самодуальной инволюции нет).
+dualConsistentQ :: InvolutiveQuantale q => [a] -> (a -> q) -> SubjModelQ q a
+dualConsistentQ xs tau = SubjModelQ xs tau (inv . tau)
+
+-- | Pl(E) = sup_{x in E} tau(x) — через расширение Кана из ядра (любая кванталь).
+smqPl :: (Eq a, Quantale q) => SubjModelQ q a -> [a] -> q
+smqPl m = plMeasure (smqDomain m) (smqTau m)
+
+-- | Bel(E) = inf_{x notin E} tauBar(x) — Ran вдоль дополнения.
+smqBel :: (Eq a, Quantale q) => SubjModelQ q a -> [a] -> q
+smqBel m = belMeasure (smqDomain m) (smqTauBar m)
+
+-- | Функториальный пушфорвард под phi: tau' = Lan_phi (sup по слою),
+--   tauBar' = Ran_phi (inf по слою). Pl_Y = Pl_X . preimage для любой квантали.
+imageModelQ :: (Eq b, Quantale q) => SubjModelQ q a -> (a -> b) -> [b] -> SubjModelQ q b
+imageModelQ m phi ys = SubjModelQ ys tau' tauBar'
+  where
+    xs = smqDomain m
+    tau'    y = joins [ smqTau m x    | x <- xs, phi x == y ]
+    tauBar' y = meets [ smqTauBar m x | x <- xs, phi x == y ]
+
+-- | Маргинал по второй координате (кванталь-версия).
+margQ :: (Eq b, Quantale q) => [(a, b)] -> ((a, b) -> q) -> b -> q
+margQ dom tauJ z2 = joins [ tauJ (a, b) | (a, b) <- dom, b == z2 ]
+
+-- | Условное распределение = residuation tau(z2) -o tauJ(z1,z2): наибольшее
+--   решение уравнения tau(z2) (x) c = tauJ(z1,z2). Форма зависит от варианта:
+--   усечение (Гёдель), деление (Гоген), min(1,1-a+b) (Лукасевич).
+condTauQ :: (Eq b, Quantale q) => [(a, b)] -> ((a, b) -> q) -> b -> a -> q
+condTauQ dom tauJ z2 z1 = qHom (margQ dom tauJ z2) (tauJ (z1, z2))
+
+-- ============================================================
+-- Вариант-2: содержательные «зарубки» шкалы (неподвижные точки) и проекторы
+-- ============================================================
+
+-- | Зарубки — упорядоченный набор неподвижных точек шкалы (кроме 0 и 1).
+type Scale q = [q]
+
+-- | Проектор (u)⌣_a = a \/ u — «сдвиг снизу»: заменяет значения ниже a на a.
+projUp :: Quantale q => q -> q -> q
+projUp = ljoin
+
+-- | Проектор (u)⌢_a = a (x) u — «скалярное действие»: у Гёделя min(a,u).
+projDown :: Quantale q => q -> q -> q
+projDown = qTensor
+
+-- | Зажим значения в неподвижный интервал [lo,hi] = (u ⌣_lo) ⌢_hi.
+--   Для идемпотентной шкалы (Гёдель) — обычный clamp min(hi, max(lo,u)).
+clampScale :: Quantale q => q -> q -> q -> q
+clampScale lo hi u = projDown hi (projUp lo u)
 
 -- ============================================================
 -- Интегралы (Теорема 1.1) — bind монады возможности в развёрнутом виде

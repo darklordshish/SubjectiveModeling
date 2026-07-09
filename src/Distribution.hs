@@ -54,6 +54,27 @@ instance Semiring Bool where
   splus  = (||)
   stimes = (&&)
 
+-- | Гоген/Виттерби: (max, *) — психофизический вариант шкалы.
+instance Semiring Goguen where
+  szero  = lbot
+  sone   = ltop
+  splus  = ljoin
+  stimes = qTensor
+
+-- | Лукасевич: (max, t-норма Лукасевича) — MV-вариант шкалы.
+instance Semiring Luka where
+  szero  = lbot
+  sone   = ltop
+  splus  = ljoin
+  stimes = qTensor
+
+-- | Тропическая шкала: (min, +) — Bel-этаж Гогена, деквантование Маслова.
+instance Semiring Trop where
+  szero  = lbot
+  sone   = ltop
+  splus  = ljoin
+  stimes = qTensor
+
 -- ============================================================
 -- Монада распределений
 -- ============================================================
